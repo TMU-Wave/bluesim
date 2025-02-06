@@ -1,4 +1,4 @@
-extends ViewportContainer
+extends SubViewportContainer
 
 # Declare member variables here. Examples:
 # var a = 2
@@ -22,7 +22,7 @@ func _ready():
 		print("unable to find ping360")
 		return
 	self.sonar = sonars[0]
-	self.sonar.connect("updatePing360Display", self, "on_ping360_update")
+	self.sonar.connect("updatePing360Display", Callable(self, "on_ping360_update"))
 
 	# You'll have to get thoose the way you want
 	var array_width = 100
@@ -33,7 +33,7 @@ func _ready():
 			array.append(0)
 
 	# The following is used to convert the array into a Texture
-	var byte_array = PoolByteArray(array)
+	var byte_array = PackedByteArray(array)
 
 	# I don't want any mipmaps generated : use_mipmaps = false
 	# I'm only interested with 1 component per pixel (the corresponding array value) : Format = Image.FORMAT_R8
@@ -42,7 +42,7 @@ func _ready():
 
 func _process(_delta):
 	visible = Globals.ping360_enabled
-	img.lock()
+	false # img.lock() # TODOConverter3To4, Image no longer requires locking, `false` helps to not break one line if/else, so it can freely be removed
 	for x in range(100):
 		img.set_pixel(x, angle, 0)
 	for point in last_points:
@@ -50,14 +50,14 @@ func _process(_delta):
 		var intensity = point[1]
 		img.set_pixel(int(distance), angle, Color(intensity, intensity, intensity))
 
-	img.unlock()
+	false # img.unlock() # TODOConverter3To4, Image no longer requires locking, `false` helps to not break one line if/else, so it can freely be removed
 	#var image = texture.get_data()
 	#img.set_pixel(angle, angle, 6)
 	# Override the default flag with 0 since I don't want texture repeat/filtering/mipmaps/etc
 	var texture = ImageTexture.new()
-	texture.create_from_image(img, 0)
+	texture.create_from_image(img) #,0
 	# Upload the texture to my shader
-	self.get_material().set_shader_param("my_array", texture)
+	self.get_material().set_shader_parameter("my_array", texture)
 
 
 func _on_Ping360Toggle_toggled(button_pressed):
