@@ -16,7 +16,7 @@ func _ready():
 	current_scene = root.get_child(root.get_child_count() -1)
 
 func goto_scene(path):
-	loader = ResourceLoader.load_interactive(path)
+	loader = ResourceLoader.load_threaded_request(path)
 	if loader == null: 
 		show_error()
 		return
@@ -26,7 +26,7 @@ func goto_scene(path):
 	# get rid of the old scene
 	current_scene.queue_free()
 
-	get_tree().change_scene("res://scenery/misc/loading/loading.tscn")
+	get_tree().change_scene_to_file("res://scenery/misc/loading/loading.tscn")
 	wait_frames = 1
 
 func _process(time):	
@@ -41,8 +41,8 @@ func _process(time):
 		wait_frames -= 1
 		return
 
-	var t = OS.get_ticks_msec()
-	while OS.get_ticks_msec() < t + time_max: # use "time_max" to control how much time we block this thread
+	var t = Time.get_ticks_msec()
+	while Time.get_ticks_msec() < t + time_max: # use "time_max" to control how much time we block this thread
 
 		# poll your loader
 		var err = loader.poll()
@@ -65,5 +65,5 @@ func update_progress():
 	loading_scene.get_node("Label").text = "Loading.. (%d %%)" % (progress * 100)
 
 func set_new_scene(scene_resource):
-	current_scene = scene_resource.instance()
+	current_scene = scene_resource.instantiate()
 	get_node("/root").add_child(current_scene)
